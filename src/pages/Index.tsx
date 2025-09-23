@@ -107,7 +107,7 @@ const Index = () => {
           
           <div className="flex items-center space-x-4">
             <a
-              href="https://calendly.com/coachkrishnangovindan/indian-life-coaching"
+              href="https://calendly.com/krishnangovindan/ai"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-hero"
@@ -142,7 +142,7 @@ const Index = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <a
-                href="https://calendly.com/coachkrishnangovindan/indian-life-coaching"
+                href="https://calendly.com/krishnangovindan/ai"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-hero text-center"
@@ -436,7 +436,7 @@ const Index = () => {
                   Book a personalized 1-on-1 coaching session to discuss your goals and create a transformation plan.
                 </p>
                 <a
-                  href="https://calendly.com/coachkrishnangovindan/indian-life-coaching"
+                  href="https://calendly.com/krishnangovindan/ai"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-hero inline-flex items-center"
