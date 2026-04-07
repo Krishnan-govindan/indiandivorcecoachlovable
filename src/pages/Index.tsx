@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import ParticleBackground from '@/components/ParticleBackground';
 import ContactForm from '@/components/ContactForm';
+import HomeBlogSection from '@/components/HomeBlogSection';
+import SEO from '@/components/SEO';
 import {
   Calendar,
   Target,
@@ -90,6 +92,81 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero relative overflow-hidden">
+      <SEO
+        title="India's First Divorce Coach | Breakup Recovery Expert | Krishnan Govindan"
+        description="India's First Divorce Coach & Breakup Recovery Expert. Heal after divorce with the proven 3-phase framework from Krishnan Govindan — CEO India Therapist, founder indianlifecoaches.com. Free discovery call."
+        keywords="india's first divorce coach, divorce recovery coach, breakup coach india, divorce coach krishnan, healing after divorce, life strategist india, indian divorce coach, divorce coaching, breakup recovery program, relationship transition coach, life coach seattle, indianlifecoaches.com, krishnan govindan"
+        jsonLd={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Person',
+            name: 'Krishnan Govindan',
+            alternateName: "India's First Divorce Coach",
+            description:
+              'Breakup and Divorce Recovery Coach, Life Strategist, Relationship Coach, CEO at India Therapist, Founder of indianlifecoaches.com',
+            jobTitle: 'Life Strategist, Divorce Recovery Coach, CEO',
+            worksFor: {
+              '@type': 'Organization',
+              name: 'India Therapist',
+              url: 'https://www.indianlifecoaches.com/',
+            },
+            knowsAbout: [
+              'Divorce Recovery',
+              'Breakup Coaching',
+              'Life Coaching',
+              'Digital Nomad Lifestyle',
+              'Relationship Coaching',
+            ],
+            sameAs: [
+              'https://www.instagram.com/nomad_krishnan/',
+              'https://www.facebook.com/NomadKrishnan/',
+              'https://youtube.com/@NomadKrishnan',
+              'https://www.linkedin.com/in/coachkrishnangovindan/',
+              'https://www.indianlifecoaches.com/',
+            ],
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'ProfessionalService',
+            name: "India's First Divorce Coach",
+            description:
+              'Divorce recovery coaching, breakup healing, and life strategy programs by Krishnan Govindan.',
+            provider: { '@type': 'Person', name: 'Krishnan Govindan' },
+            areaServed: { '@type': 'Country', name: 'Worldwide' },
+            serviceType: 'Divorce Recovery Coaching',
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: [
+              {
+                '@type': 'Question',
+                name: "Who is India's First Divorce Coach?",
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "Krishnan Govindan is India's First Divorce Coach, Life Strategist, and CEO of India Therapist. He helps professionals heal after divorce, breakups, and major life transitions using a proven 3-phase framework.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'How does divorce recovery coaching work?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'Krishnan uses a 3-phase framework: Stabilize (first 90 days of emotional regulation and routines), Reclaim (rediscover identity outside the relationship), and Rebuild (design the next chapter of career, lifestyle, and relationships).',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'How do I book a session with Krishnan?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'You can book a free discovery call by filling out the contact form, calling +1-425-442-4167, or emailing support@indianlifecoaches.com. Krishnan offers coaching in English and Hindi worldwide.',
+                },
+              },
+            ],
+          },
+        ]}
+      />
       <ParticleBackground />
       
       {/* Navigation */}
@@ -412,6 +489,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Blog Section */}
+      <HomeBlogSection />
 
       {/* Contact Section */}
       <section className="relative z-10 px-6 py-20">

@@ -1,0 +1,22 @@
+{
+	auto_https off
+	admin off
+	persist_config off
+	log {
+		format json
+	}
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:{$PORT:8080} {
+	root * /app/dist
+	encode gzip
+	try_files {path} /index.html
+	file_server
+	header {
+		-Server
+	}
+	header /assets/* Cache-Control "public, max-age=31536000, immutable"
+}
