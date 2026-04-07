@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, X, Send, Bot, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { knowledgeBase, findKnowledgeBaseAnswer } from '@/lib/knowledgeBase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -13,6 +14,11 @@ const WELCOME: Msg = {
   content:
     "Hi! I'm Krishnan's AI assistant. Ask me anything about divorce recovery, breakup healing, life coaching, or working with India's First Divorce Coach. How can I help you today?",
 };
+
+const SYSTEM_PROMPT = `You are Krishnan Govindan's AI assistant. Krishnan is India's First Divorce Coach, Life Strategist, and CEO of India Therapist. He helps people heal after divorce, breakups, and major life transitions. Use the knowledge base below to answer questions accurately and empathetically. Always be warm, supportive, and recommend booking a session for personalized help when appropriate.
+
+KNOWLEDGE BASE:
+${knowledgeBase}`;
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -34,49 +40,31 @@ export default function Chatbot() {
     setLoading(true);
 
     try {
-      // Try OpenAI API if key is configured (via Supabase Edge Function or env)
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-      if (apiKey) {
-        const systemPrompt = `You are Krishnan Govindan's AI assistant. Krishnan is India's First Divorce Coach, Life Strategist, and CEO of India Therapist. He helps people heal after divorce, breakups, and major life transitions. Use the knowledge base below to answer questions accurately and empathetically. Always be warm, supportive, and recommend booking a session for personalized help when appropriate.
+      // Call the Supabase Edge Function proxy — API key stays server-side
+      const { data, error } = await supabase.functions.invoke('openai-chat', {
+        body: {
+          systemPrompt: SYSTEM_PROMPT,
+          messages: [
+            ...messages.map((m) => ({ role: m.role, content: m.content })),
+            { role: 'user', content: text },
+          ],
+        },
+      });
 
-KNOWLEDGE BASE:
-${knowledgeBase}`;
-
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              ...messages.map((m) => ({ role: m.role, content: m.content })),
-              { role: 'user', content: text },
-            ],
-            temperature: 0.7,
-            max_tokens: 400,
-          }),
-        });
-        const data = await res.json();
-        const reply =
-          data.choices?.[0]?.message?.content || findKnowledgeBaseAnswer(text);
-        setMessages((m) => [...m, { role: 'assistant', content: reply }]);
-      } else {
-        // Local fallback using knowledge base keyword matching
+      if (error || !data?.reply) {
+        // Fallback to local knowledge base if edge function fails
         const reply = findKnowledgeBaseAnswer(text);
         setMessages((m) => [...m, { role: 'assistant', content: reply }]);
+      } else {
+        setMessages((m) => [
+          ...m,
+          { role: 'assistant', content: data.reply as string },
+        ]);
       }
-    } catch (err) {
-      setMessages((m) => [
-        ...m,
-        {
-          role: 'assistant',
-          content:
-            "I'm having trouble responding right now. You can reach Krishnan directly at +1-425-442-4167 or email support@indianlifecoaches.com.",
-        },
-      ]);
+    } catch {
+      // Graceful fallback
+      const reply = findKnowledgeBaseAnswer(text);
+      setMessages((m) => [...m, { role: 'assistant', content: reply }]);
     } finally {
       setLoading(false);
     }
