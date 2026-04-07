@@ -5,6 +5,107 @@ import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import { supabase, type Blog } from '@/integrations/supabase/client';
 import SEO from '@/components/SEO';
 import ParticleBackground from '@/components/ParticleBackground';
+import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
+
+// Convert plain-text content (with line breaks and markdown-ish patterns)
+// into structured HTML so pasted text still renders with proper headings,
+// paragraphs, lists, and bold runs.
+function autoFormatPlainText(raw: string): string {
+  const trimmed = raw.trim();
+  // If the content already contains real block tags, treat it as HTML.
+  if (/<(p|h[1-6]|ul|ol|li|blockquote|pre|img|iframe|div)\b/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  const lines = trimmed.split(/\r?\n/);
+  const blocks: string[] = [];
+  let paragraphBuffer: string[] = [];
+  let listBuffer: string[] = [];
+  let listType: 'ul' | 'ol' | null = null;
+
+  const flushParagraph = () => {
+    if (paragraphBuffer.length) {
+      blocks.push(`<p>${paragraphBuffer.join(' ')}</p>`);
+      paragraphBuffer = [];
+    }
+  };
+  const flushList = () => {
+    if (listBuffer.length && listType) {
+      blocks.push(`<${listType}>${listBuffer.map((i) => `<li>${i}</li>`).join('')}</${listType}>`);
+      listBuffer = [];
+      listType = null;
+    }
+  };
+
+  const inlineFormat = (s: string) =>
+    s
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.+?)__/g, '<strong>$1</strong>')
+      .replace(/\*(?!\s)([^*]+?)\*/g, '<em>$1</em>');
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    // Markdown-style headings
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) {
+      flushParagraph();
+      flushList();
+      const level = h[1].length;
+      blocks.push(`<h${level}>${inlineFormat(h[2])}</h${level}>`);
+      continue;
+    }
+
+    // Numbered list "1. ", "2) "
+    const ol = line.match(/^(\d+)[.)]\s+(.*)$/);
+    if (ol) {
+      flushParagraph();
+      if (listType !== 'ol') flushList();
+      listType = 'ol';
+      listBuffer.push(inlineFormat(ol[2]));
+      continue;
+    }
+
+    // Bullet list "- " or "• " or "* "
+    const ul = line.match(/^([-*•])\s+(.*)$/);
+    if (ul) {
+      flushParagraph();
+      if (listType !== 'ul') flushList();
+      listType = 'ul';
+      listBuffer.push(inlineFormat(ul[2]));
+      continue;
+    }
+
+    // Heuristic: short standalone line that looks like a heading
+    // (e.g. "Introduction", "1. Allow Yourself to Grieve")
+    const looksLikeHeading =
+      line.length < 90 &&
+      !line.endsWith('.') &&
+      !line.endsWith(',') &&
+      /^[A-Z0-9]/.test(line) &&
+      line.split(' ').length <= 12;
+
+    if (looksLikeHeading && paragraphBuffer.length === 0) {
+      flushList();
+      blocks.push(`<h2>${inlineFormat(line)}</h2>`);
+      continue;
+    }
+
+    flushList();
+    paragraphBuffer.push(inlineFormat(line));
+  }
+
+  flushParagraph();
+  flushList();
+
+  return blocks.join('\n');
+}
 
 export default function BlogPost() {
   const { slug } = useParams();
@@ -25,7 +126,6 @@ export default function BlogPost() {
         setNotFound(true);
       } else {
         setBlog(data as Blog);
-        // Increment view count (best-effort)
         supabase
           .from('blogs')
           .update({ views: ((data as Blog).views || 0) + 1 })
@@ -38,7 +138,7 @@ export default function BlogPost() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-hero text-foreground flex items-center justify-center">
         Loading…
       </div>
     );
@@ -46,18 +146,25 @@ export default function BlogPost() {
 
   if (notFound || !blog) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Article not found</h1>
-          <Link to="/blog" className="text-purple-300 underline">
-            Back to all articles
-          </Link>
+      <div className="min-h-screen bg-gradient-hero relative overflow-hidden">
+        <ParticleBackground />
+        <SiteHeader />
+        <div className="relative z-10 flex items-center justify-center py-32">
+          <div className="text-center">
+            <h1 className="font-display text-4xl font-bold mb-4 text-gradient">
+              Article not found
+            </h1>
+            <Link to="/blog" className="text-primary underline">
+              Back to all articles
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
-  const cleanBody = DOMPurify.sanitize(blog.body, {
+  const formattedBody = autoFormatPlainText(blog.body || '');
+  const cleanBody = DOMPurify.sanitize(formattedBody, {
     ADD_TAGS: ['iframe'],
     ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'target'],
   });
@@ -91,7 +198,7 @@ export default function BlogPost() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/50 to-slate-950 text-white">
+    <div className="min-h-screen bg-gradient-hero relative overflow-hidden">
       <SEO
         title={blog.meta_title || blog.title}
         description={blog.meta_description || blog.excerpt || blog.title}
@@ -105,61 +212,99 @@ export default function BlogPost() {
       />
       <ParticleBackground />
 
-      <article className="container mx-auto px-4 py-16 relative z-10 max-w-4xl">
-        <Link
-          to="/blog"
-          className="inline-flex items-center gap-2 text-purple-300 hover:text-white mb-8 transition"
-        >
-          <ArrowLeft className="w-4 h-4" /> All articles
-        </Link>
+      <SiteHeader />
 
-        <header className="mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-pink-200">
-            {blog.title}
-          </h1>
-          {blog.subtitle && (
-            <p className="text-xl text-purple-200/80 mb-6">{blog.subtitle}</p>
-          )}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-purple-300">
-            <span className="flex items-center gap-1">
-              <User className="w-4 h-4" /> {blog.author || 'Krishnan Govindan'}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {blog.published_at ? new Date(blog.published_at).toLocaleDateString() : ''}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" /> {blog.reading_minutes || 5} min read
-            </span>
-          </div>
-        </header>
+      <article className="relative z-10 px-6 py-12">
+        <div className="max-w-4xl mx-auto">
+          <Link
+            to="/blog"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> All articles
+          </Link>
 
-        {blog.cover_image_url && (
-          <img
-            src={blog.cover_image_url}
-            alt={blog.title}
-            className="w-full rounded-2xl mb-10"
-          />
-        )}
-
-        <div
-          className="prose prose-invert prose-lg max-w-none prose-headings:text-purple-100 prose-a:text-purple-300 prose-strong:text-white prose-img:rounded-xl"
-          dangerouslySetInnerHTML={{ __html: cleanBody }}
-        />
-
-        {blog.tags && blog.tags.length > 0 && (
-          <div className="mt-12 flex flex-wrap gap-2">
-            {blog.tags.map((t) => (
-              <span
-                key={t}
-                className="px-3 py-1 text-xs rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30"
-              >
-                #{t}
+          <header className="mb-10">
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              <span className="text-gradient">{blog.title}</span>
+            </h1>
+            {blog.subtitle && (
+              <p className="text-xl md:text-2xl text-muted-foreground mb-6 leading-relaxed">
+                {blog.subtitle}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-y border-border/50 py-4">
+              <span className="flex items-center gap-1.5">
+                <User className="w-4 h-4 text-primary" />
+                {blog.author || 'Krishnan Govindan'}
               </span>
-            ))}
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-primary" />
+                {blog.published_at
+                  ? new Date(blog.published_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : ''}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-primary" />
+                {blog.reading_minutes || 5} min read
+              </span>
+            </div>
+          </header>
+
+          {blog.cover_image_url && (
+            <div className="card-luxury p-2 mb-12 animate-glow">
+              <img
+                src={blog.cover_image_url}
+                alt={blog.title}
+                className="w-full rounded-xl"
+              />
+            </div>
+          )}
+
+          <div
+            className="blog-content"
+            dangerouslySetInnerHTML={{ __html: cleanBody }}
+          />
+
+          {blog.tags && blog.tags.length > 0 && (
+            <div className="mt-16 pt-8 border-t border-border/50">
+              <h3 className="font-display font-semibold text-foreground mb-4">Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {blog.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary border border-primary/30"
+                  >
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-16 card-luxury p-8 text-center">
+            <h3 className="font-display text-2xl font-semibold mb-3 text-gradient">
+              Ready to start your healing journey?
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Book a free discovery call with India's 1st Divorce Coach.
+            </p>
+            <a
+              href="https://calendly.com/krishnangovindan/ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-hero inline-flex items-center"
+            >
+              Schedule a Session
+            </a>
           </div>
-        )}
+        </div>
       </article>
+
+      <SiteFooter />
     </div>
   );
 }
