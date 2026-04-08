@@ -26,7 +26,7 @@ export default function SiteHeader() {
             Blog
           </Link>
           <a
-            href="https://calendly.com/krishnangovindan/ai"
+            href="https://calendly.com/fulsuccess/ai"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-hero"

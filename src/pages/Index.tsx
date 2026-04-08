@@ -11,7 +11,6 @@ import {
   Users,
   Brain,
   Star,
-  Play,
   ExternalLink,
   Instagram,
   Facebook,
@@ -184,7 +183,7 @@ const Index = () => {
           
           <div className="flex items-center space-x-4">
             <a
-              href="https://calendly.com/krishnangovindan/ai"
+              href="https://calendly.com/fulsuccess/ai"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-hero"
@@ -219,7 +218,7 @@ const Index = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <a
-                href="https://calendly.com/krishnangovindan/ai"
+                href="https://calendly.com/fulsuccess/ai"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-hero text-center"
@@ -227,9 +226,9 @@ const Index = () => {
                 <Calendar className="w-5 h-5 mr-2" />
                 Schedule a Session
               </a>
-              
+
               <a
-                href="https://wa.me/14254424167"
+                href="https://wa.me/14254424167?text=Hi%2C%20I%20am%20looking%20for%20divorce%20coaching%20to%20rebuild%20my%20life"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary text-center"
@@ -432,7 +431,7 @@ const Index = () => {
             {videos.map((video, index) => (
               <div key={index} className="card-luxury group hover:scale-105 transition-all duration-500">
                 <div className="p-4">
-                  <div className="aspect-video rounded-xl overflow-hidden mb-4 relative">
+                  <div className="aspect-video rounded-xl overflow-hidden mb-4">
                     <iframe
                       src={`https://www.youtube.com/embed/${video.id}`}
                       title={video.title}
@@ -440,9 +439,6 @@ const Index = () => {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-all duration-300 flex items-center justify-center">
-                      <Play className="w-12 h-12 text-white opacity-80 group-hover:opacity-0 transition-all duration-300" />
-                    </div>
                   </div>
                   <h3 className="font-display text-lg font-semibold group-hover:text-gradient transition-all duration-300">
                     {video.title}
@@ -516,7 +512,7 @@ const Index = () => {
                   Book a personalized 1-on-1 coaching session to discuss your goals and create a transformation plan.
                 </p>
                 <a
-                  href="https://calendly.com/krishnangovindan/ai"
+                  href="https://calendly.com/fulsuccess/ai"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-hero inline-flex items-center"
@@ -542,7 +538,7 @@ const Index = () => {
                   </a>
                   
                   <a
-                    href="https://wa.me/14254424167"
+                    href="https://wa.me/14254424167?text=Hi%2C%20I%20am%20looking%20for%20divorce%20coaching%20to%20rebuild%20my%20life"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center space-x-3 text-muted-foreground hover:text-primary transition-colors duration-300"

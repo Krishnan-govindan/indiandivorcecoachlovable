@@ -293,7 +293,7 @@ export default function BlogPost() {
               Book a free discovery call with India's 1st Divorce Coach.
             </p>
             <a
-              href="https://calendly.com/krishnangovindan/ai"
+              href="https://calendly.com/fulsuccess/ai"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-hero inline-flex items-center"
